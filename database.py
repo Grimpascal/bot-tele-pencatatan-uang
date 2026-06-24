@@ -5,6 +5,11 @@ DB_PATH = os.getenv("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "us
 
 def init_db():
     """Menginisialisasi database SQLite dan membuat tabel jika belum ada."""
+    # Pastikan direktori database ada (misal folder /data pada volume Railway)
+    db_dir = os.path.dirname(DB_PATH)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
