@@ -18,7 +18,7 @@ class SheetsClient:
         if self.client:
             return True
         try:
-            google_creds_env = os.getenv("GOOGLE_CREDENTIALS")
+            google_creds_env = os.getenv("GOOGLE_CREDENTIALS") or os.getenv("GOOGLE_CREDENTIAL")
             if google_creds_env:
                 creds_info = json.loads(google_creds_env)
                 creds = Credentials.from_service_account_info(creds_info, scopes=self.scopes)

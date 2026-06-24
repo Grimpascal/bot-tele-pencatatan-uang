@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 # Ambil email Service Account secara dinamis (dari env variable atau file credentials.json)
 SERVICE_ACCOUNT_EMAIL = "email_service_account_belum_diatur"
-google_creds_env = os.getenv("GOOGLE_CREDENTIALS")
+google_creds_env = os.getenv("GOOGLE_CREDENTIALS") or os.getenv("GOOGLE_CREDENTIAL")
 
 if google_creds_env:
     try:
@@ -140,12 +140,9 @@ async def set_sheet(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     except Exception as e:
         logger.error(f"Error memverifikasi spreadsheet: {e}")
-        # Tampilkan key env variables yang tidak sensitif untuk debugging
-        env_keys = sorted([k for k in os.environ.keys() if not (k.startswith("RAILWAY_") or "TOKEN" in k or "SECRET" in k or "PASSWORD" in k or "KEY" in k)])
         await loading_msg.edit_text(
             f"❌ Terjadi kesalahan saat mencoba menghubungkan spreadsheet.\n\n"
-            f"**Detail Error:** `{str(e)}`\n\n"
-            f"**Variabel Lingkungan Terdeteksi:** `{', '.join(env_keys)}`"
+            f"**Detail Error:** `{str(e)}`"
         )
 
 
