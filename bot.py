@@ -141,8 +141,8 @@ async def set_sheet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error memverifikasi spreadsheet: {e}")
         await loading_msg.edit_text(
-            "❌ Terjadi kesalahan saat mencoba menghubungkan spreadsheet. "
-            "Pastikan bot memiliki file `credentials.json` yang valid."
+            f"❌ Terjadi kesalahan saat mencoba menghubungkan spreadsheet.\n\n"
+            f"**Detail Error:** `{str(e)}`"
         )
 
 async def masuk(update: Update, context: ContextTypes.DEFAULT_TYPE):
