@@ -8,24 +8,24 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 from sheets_client import SheetsClient
 from database import init_db, get_user_sheet, set_user_sheet
 
-# Load environment variables dari file .env
+
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 SHEET_NAME = os.getenv("SHEET_NAME", "Sheet1")
 CREDENTIALS_FILE = os.getenv("CREDENTIALS_FILE", "credentials.json")
 
-# Inisialisasi database SQLite
+
 init_db()
 
-# Setup logging
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Ambil email Service Account secara dinamis (dari env variable atau file credentials.json)
+
 SERVICE_ACCOUNT_EMAIL = "email_service_account_belum_diatur"
 google_creds_env = os.getenv("GOOGLE_CREDENTIALS") or os.getenv("GOOGLE_CREDENTIAL")
 
@@ -43,10 +43,10 @@ elif os.path.exists(CREDENTIALS_FILE):
     except Exception as e:
         logger.error(f"Gagal membaca email Service Account dari {CREDENTIALS_FILE}: {e}")
 
-# Inisialisasi client Google Sheets (tanpa SPREADSHEET_ID statis)
+
 sheets_client = SheetsClient(credentials_file=CREDENTIALS_FILE)
 
-# Coba koneksi awal saat startup untuk memverifikasi credentials.json atau GOOGLE_CREDENTIALS env
+
 try:
     if os.getenv("GOOGLE_CREDENTIALS") or os.path.exists(CREDENTIALS_FILE):
         sheets_client.connect()
@@ -80,7 +80,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🔍 **Cara Menemukan ID Spreadsheet:**\n"
         "ID spreadsheet adalah deretan karakter unik di tengah URL spreadsheet Anda.\n"
         "Jika URL sheet Anda:\n"
-        "👉 `https://docs.google.com/spreadsheets/d/`**`1a2b3c4d5e...`**`/edit#gid=0`\n"
+        "👉 `https://docs.google.com/spreadsheets/d/`**`1a2b3c4d5e...`**`/edit
         "Maka ID-nya adalah: `1a2b3c4d5e...`\n\n"
         "📌 **Cara Penggunaan (setelah dihubungkan):**\n"
         "📥 *Pemasukan:* `/masuk <jumlah> <keterangan>`\n"
@@ -107,11 +107,11 @@ async def set_sheet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     loading_msg = await update.message.reply_text("⏳ Memverifikasi akses ke spreadsheet Anda...")
 
     try:
-        # Lakukan verifikasi akses dengan mencoba membuka worksheet
+        
         sheets_client.connect()
         sheets_client._get_worksheet(spreadsheet_id, SHEET_NAME)
 
-        # Jika berhasil terbuka, simpan relasi user_id -> spreadsheet_id ke SQLite DB
+        
         set_user_sheet(user_id, spreadsheet_id)
 
         success_msg = (
@@ -162,9 +162,9 @@ async def masuk(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Periksa argumen perintah
+    
     if not context.args:
-        # Masuk ke mode step-by-step jika tidak ada parameter
+        
         context.user_data['temp_transaction'] = {
             'type': 'Pemasukan',
             'step': 'amount'
@@ -199,7 +199,7 @@ async def masuk(update: Update, context: ContextTypes.DEFAULT_TYPE):
     loading_msg = await update.message.reply_text("⏳ Sedang menyimpan data ke Google Sheets...")
 
     try:
-        # Tambah record ke Google Sheet milik user tersebut
+        
         sheets_client.add_record(spreadsheet_id, SHEET_NAME, "Pemasukan", amount, description)
         formatted_amount = format_rupiah(amount)
         await loading_msg.edit_text(
@@ -231,9 +231,9 @@ async def keluar(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # Periksa argumen perintah
+    
     if not context.args:
-        # Masuk ke mode step-by-step jika tidak ada parameter
+        
         context.user_data['temp_transaction'] = {
             'type': 'Pengeluaran',
             'step': 'amount'
@@ -268,7 +268,7 @@ async def keluar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     loading_msg = await update.message.reply_text("⏳ Sedang menyimpan data ke Google Sheets...")
 
     try:
-        # Tambah record ke Google Sheet milik user tersebut
+        
         sheets_client.add_record(spreadsheet_id, SHEET_NAME, "Pengeluaran", amount, description)
         formatted_amount = format_rupiah(amount)
         await loading_msg.edit_text(
@@ -330,21 +330,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     temp = context.user_data.get('temp_transaction')
 
     if not temp:
-        # Jika tidak dalam proses transaksi, abaikan saja
+        
         return
 
     step = temp.get('step')
     trans_type = temp.get('type')
 
     if step == 'amount':
-        # Proses input jumlah uang
+        
         amount_str = update.message.text.strip()
         try:
             amount = parse_amount(amount_str)
             if amount <= 0:
                 raise ValueError()
             
-            # Simpan jumlah dan ubah step ke keterangan
+            
             temp['amount'] = amount
             temp['step'] = 'description'
             
@@ -358,7 +358,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ Jumlah tidak valid. Harap masukkan angka saja (Contoh: 50000 atau 50.000):")
 
     elif step == 'description':
-        # Proses input deskripsi dan simpan ke sheets
+        
         description = update.message.text.strip()
         amount = temp['amount']
         
@@ -374,7 +374,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             sheets_client.add_record(spreadsheet_id, SHEET_NAME, trans_type, amount, description)
             formatted_amount = format_rupiah(amount)
             
-            # Hapus transaksi sementara karena sudah sukses
+            
             context.user_data.pop('temp_transaction')
             
             await loading_msg.edit_text(
@@ -410,7 +410,7 @@ def main():
 
     app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
 
-    # Daftarkan handler perintah
+    
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("set_sheet", set_sheet))
     app.add_handler(CommandHandler("masuk", masuk))
@@ -418,7 +418,7 @@ def main():
     app.add_handler(CommandHandler("laporan", laporan))
     app.add_handler(CommandHandler("cancel", cancel))
     
-    # Message handler untuk menangani teks biasa saat alur input bertahap
+    
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("\n=======================================================")
