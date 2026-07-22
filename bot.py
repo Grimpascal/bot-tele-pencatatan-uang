@@ -8,7 +8,6 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Messa
 from sheets_client import SheetsClient
 from database import init_db, get_user_sheet, set_user_sheet
 
-
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
